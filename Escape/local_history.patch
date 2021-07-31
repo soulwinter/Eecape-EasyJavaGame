@@ -1,0 +1,197 @@
+Index: src/main/java/Server/Update.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/Server/Update.java b/src/main/java/Server/Update.java
+--- a/src/main/java/Server/Update.java	(date 1627176380730)
++++ b/src/main/java/Server/Update.java	(date 1627176380730)
+@@ -13,35 +13,25 @@
+     @Override
+     public void run() {
+         while (true) {
+-            ServerUI.changed = false;
++            ServerUI.changed = true;
+             timeRound++;
+ 
+-//            if (timeRound % 200 == 0) {
+-//                for (int i=0; i<rand.nextInt(timeRound/200)+1; i++) {
+-////                    switch (rand.nextInt(3)+1) {
+-////                        case 1 -> ServerUI.enemiesInServer.add(new Enemy(Constant.gWIDTH+50, rand.nextInt(Constant.gHEIGHT), rand.nextInt(4) + 1));
+-////                        case 2 -> ServerUI.enemiesInServer.add(new Enemy(-50, rand.nextInt(700), rand.nextInt(4) + 1));
+-////                        case 3 -> ServerUI.enemiesInServer.add(new Enemy(rand.nextInt(Constant.gWIDTH), Constant.gHEIGHT+50, rand.nextInt(4) + 1));
+-////                        case 4 -> ServerUI.enemiesInServer.add(new Enemy(rand.nextInt(Constant.gWIDTH), -50, rand.nextInt(4) + 1));
+-////                    }
+-//                    System.out.println("Update 运行正常");
+-//                    ServerUI.enemiesInServer.add(new Enemy(rand.nextInt(Constant.gWIDTH), rand.nextInt(Constant.gHEIGHT), rand.nextInt(4) + 1));
+-//                }
+-//            }
+-
+-            double tempX = ServerUI.enemiesInServer.get(4).posX;
+-
++            if (timeRound % 200 == 0) {
++                for (int i=0; i<rand.nextInt(timeRound/200)+1; i++) {
++//                    switch (rand.nextInt(3)+1) {
++//                        case 1 -> ServerUI.enemiesInServer.add(new Enemy(Constant.gWIDTH+50, rand.nextInt(Constant.gHEIGHT), rand.nextInt(4) + 1));
++//                        case 2 -> ServerUI.enemiesInServer.add(new Enemy(-50, rand.nextInt(700), rand.nextInt(4) + 1));
++//                        case 3 -> ServerUI.enemiesInServer.add(new Enemy(rand.nextInt(Constant.gWIDTH), Constant.gHEIGHT+50, rand.nextInt(4) + 1));
++//                        case 4 -> ServerUI.enemiesInServer.add(new Enemy(rand.nextInt(Constant.gWIDTH), -50, rand.nextInt(4) + 1));
++//                    }
++                    System.out.println("Update 运行正常");
++                    ServerUI.enemiesInServer.add(new Enemy(rand.nextInt(Constant.gWIDTH), rand.nextInt(Constant.gHEIGHT), rand.nextInt(4) + 1));
++                }
++            }
+             for (Enemy i:ServerUI.enemiesInServer) {
+                 i.move(0,0);
+-
+-                // System.out.println(ServerUI.enemiesInServer.indexOf(i));
+-
++                
+             }
+-            if (ServerUI.enemiesInServer.get(4).posX != tempX) {
+-                ServerUI.changed = true;
+-                System.out.println("移动了");
+-            }
+-            // System.out.println(ServerUI.enemiesInServer.size());
+ 
+             try {
+                 Thread.sleep(15);
+Index: src/main/java/Server/Receive.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/Server/Receive.java b/src/main/java/Server/Receive.java
+--- a/src/main/java/Server/Receive.java	(date 1627177957968)
++++ b/src/main/java/Server/Receive.java	(date 1627177957968)
+@@ -15,8 +15,8 @@
+     private ObjectInputStream dis;
+     private boolean flag = true;
+     private Object temp = null;
+-    private ArrayList<Enemy> enemiesToSend = new ArrayList<>();
+-    private ArrayList<Enemy> enemiesToReturn = new ArrayList<>();
++    private ArrayList<TranEnemy> enemiesToSend = new ArrayList<>();
++    private ArrayList<TranEnemy> enemiesToReturn = new ArrayList<>();
+     private int ranTime = 0;
+ 
+     public Receive(Socket client) {
+@@ -28,11 +28,11 @@
+         }
+     }
+ 
+-    private ArrayList<Enemy> getObject() {
++    private ArrayList<TranEnemy> getObject() {
+ 
+         try {
+             if ((temp = dis.readObject()) instanceof ArrayList) {
+-                enemiesToSend = (ArrayList<Enemy>) temp;
++                enemiesToSend = (ArrayList<TranEnemy>) temp;
+             }
+         } catch (IOException e) {
+             e.printStackTrace();
+@@ -52,19 +52,11 @@
+         while (flag) {
+            // synchronized ()
+             // System.out.println("已复制");
+-            // enemiesToReturn = getObject();
+-            Double temp1 = null;
+-            Enemy temp2 = null;
+-            try {
+-                // enemiesToReturn =  (ArrayList<Enemy>) dis.readObject();
+-                temp1 = (Double) dis.readObject();
+-                temp2 = (Enemy) dis.readObject();
+-
+-            } catch (IOException | ClassNotFoundException e) {
+-                e.printStackTrace();
+-            }
+-            System.out.println("1:" + temp1);
+-            System.out.println("2:" + temp2.posX);
++            enemiesToReturn = getObject();
++            System.out.println(enemiesToReturn.get(4).posX);
++           
++           
++            
+ //            MultiPersonMode.enemies.clear();
+ //            MultiPersonMode.enemies = getObject();
+ 
+@@ -72,6 +64,9 @@
+     }
+ 
+     public ArrayList<Enemy> getEnemy() {
+-        return enemiesToReturn;
++        for (TranEnemy i:enemiesToReturn) {
++            MultiPersonMode.enemies.add(new Enemy(i.posX, i.posY, i.speed));
++        }
++        // return enemiesToReturn;
+     }
+ }
+Index: src/main/java/Server/MyChannel.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/Server/MyChannel.java b/src/main/java/Server/MyChannel.java
+--- a/src/main/java/Server/MyChannel.java	(date 1627177957966)
++++ b/src/main/java/Server/MyChannel.java	(date 1627177957966)
+@@ -14,7 +14,7 @@
+ public class MyChannel implements Runnable {
+     private ObjectOutputStream dos;
+     private boolean flag = true;
+-    private ArrayList<Enemy> tranEnemy = new ArrayList<>();
++    private ArrayList<TranEnemy> tranEnemy = new ArrayList<>();
+ 
+     public MyChannel(Socket client) {
+         try {
+@@ -45,14 +45,19 @@
+     private void Broadcast() {
+         List<MyChannel> list = ServerUI.list;
+         for (MyChannel other: list) {
+-            other.send((Double) tranEnemy.get(4).posX);
+-            other.send(ServerUI.enemiesInServer.get(4));
++//            other.send((Double) tranEnemy.get(4).posX);
++//            other.send(ServerUI.enemiesInServer.get(4));
++            other.send(tranEnemy);
+             System.out.println("[INFO] Data Sent.");
+         }
+     }
+ 
+     private void convert() {
+-        tranEnemy = (ArrayList<Enemy>) ServerUI.enemiesInServer.clone();
++//        tranEnemy = (ArrayList<TranEnemy>) ServerUI.enemiesInServer.clone();
++        tranEnemy.clear();
++        for (Enemy i:ServerUI.enemiesInServer) {
++            tranEnemy.add(new TranEnemy(i.posX,i.posY,i.speed));
++        }
+     }
+ 
+     @Override
+@@ -60,10 +65,7 @@
+         while (flag) {
+             if (ServerUI.changed) {
+                 convert();
+-                System.out.println("2: " + tranEnemy.get(4).posX);
+-                System.out.println(tranEnemy.size());
+                 Broadcast();
+-
+                 ServerUI.changed = false;
+             } else {
+                 try {
+Index: src/main/java/Server/TranEnemy.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/Server/TranEnemy.java b/src/main/java/Server/TranEnemy.java
+--- a/src/main/java/Server/TranEnemy.java	(date 1627207076940)
++++ b/src/main/java/Server/TranEnemy.java	(date 1627207076940)
+@@ -2,8 +2,8 @@
+ 
+ public class TranEnemy {
+     double posX,posY;
+-    double speed;
+-    public TranEnemy(double x, double y, double speedOfEnemy) {
++    int speed;
++    public TranEnemy(double x, double y, int speedOfEnemy) {
+         posX = x;
+         posY = y;
+         speed = speedOfEnemy;
